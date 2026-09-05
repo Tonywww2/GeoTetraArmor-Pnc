@@ -1,0 +1,21 @@
+{
+  "replace": true,
+  "slots": ["legs/extra"],
+  "materialSlotCount": 1,
+  "displayType": "major",
+  "glyph": {
+    "textureLocation": "pneumaticcraft:textures/item/pneumatic_leggings.png",
+    "textureX": 0,
+    "textureY": 0
+  },
+  "outcomes": [
+    {
+      "material": {
+        "items": ["pneumaticcraft:pneumatic_leggings"],
+        "count": 1
+      },
+      "moduleKey": "armor/legs/extra/pneumatic",
+      "moduleVariant": "pneumatic"
+    }
+  ]
+}

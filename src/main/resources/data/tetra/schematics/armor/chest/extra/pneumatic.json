@@ -1,0 +1,21 @@
+{
+  "replace": true,
+  "slots": ["chest/extra"],
+  "materialSlotCount": 1,
+  "displayType": "major",
+  "glyph": {
+    "textureLocation": "pneumaticcraft:textures/item/pneumatic_chestplate.png",
+    "textureX": 0,
+    "textureY": 0
+  },
+  "outcomes": [
+    {
+      "material": {
+        "items": ["pneumaticcraft:pneumatic_chestplate"],
+        "count": 1
+      },
+      "moduleKey": "armor/chest/extra/pneumatic",
+      "moduleVariant": "pneumatic"
+    }
+  ]
+}

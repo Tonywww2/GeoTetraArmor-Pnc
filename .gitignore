@@ -1,0 +1,47 @@
+# Gradle and build output
+/.gradle/
+/build/
+/bin/
+/out/
+
+# Minecraft development runtime
+/run/
+/runs/
+/run-data/
+/logs/
+/crash-reports/
+/repo/
+
+# IntelliJ IDEA
+/.idea/
+*.iml
+*.ipr
+*.iws
+
+# Eclipse
+/.settings/
+/.metadata/
+/.classpath
+/.project
+*.launch
+/eclipse/
+
+# Visual Studio Code
+/.vscode/
+
+# Java and JVM diagnostics
+*.class
+*.log
+hs_err_pid*
+replay_pid*
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.bak
+*.swp
+*.tmp
+*~

@@ -1,0 +1,19 @@
+{
+  "tetra.variant.pneumatic": "气动附件",
+  "tetra.module.armor/head/extra/pneumatic.description": "将气动头盔集成至护甲，并保留其中的气量、升级与设置",
+  "tetra.module.armor/chest/extra/pneumatic.description": "将气动胸甲集成至护甲，并保留其中的气量、升级与设置",
+  "tetra.module.armor/legs/extra/pneumatic.description": "将气动护腿集成至护甲，并保留其中的气量、升级与设置",
+  "tetra.module.armor/feet/extra/pneumatic.description": "将气动靴子集成至护甲，并保留其中的气量、升级与设置",
+  "tetra/schematic/armor/head/extra/pneumatic.name": "气动头盔附件",
+  "tetra/schematic/armor/head/extra/pneumatic.slot1": "气动头盔",
+  "tetra/schematic/armor/head/extra/pneumatic.description": "将气动头盔安装至额外模块槽",
+  "tetra/schematic/armor/chest/extra/pneumatic.name": "气动胸甲附件",
+  "tetra/schematic/armor/chest/extra/pneumatic.slot1": "气动胸甲",
+  "tetra/schematic/armor/chest/extra/pneumatic.description": "将气动胸甲安装至额外模块槽",
+  "tetra/schematic/armor/legs/extra/pneumatic.name": "气动护腿附件",
+  "tetra/schematic/armor/legs/extra/pneumatic.slot1": "气动护腿",
+  "tetra/schematic/armor/legs/extra/pneumatic.description": "将气动护腿安装至额外模块槽",
+  "tetra/schematic/armor/feet/extra/pneumatic.name": "气动靴子附件",
+  "tetra/schematic/armor/feet/extra/pneumatic.slot1": "气动靴子",
+  "tetra/schematic/armor/feet/extra/pneumatic.description": "将气动靴子安装至额外模块槽"
+}

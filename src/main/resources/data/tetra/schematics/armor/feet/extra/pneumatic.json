@@ -1,0 +1,21 @@
+{
+  "replace": true,
+  "slots": ["feet/extra"],
+  "materialSlotCount": 1,
+  "displayType": "major",
+  "glyph": {
+    "textureLocation": "pneumaticcraft:textures/item/pneumatic_boots.png",
+    "textureX": 0,
+    "textureY": 0
+  },
+  "outcomes": [
+    {
+      "material": {
+        "items": ["pneumaticcraft:pneumatic_boots"],
+        "count": 1
+      },
+      "moduleKey": "armor/feet/extra/pneumatic",
+      "moduleVariant": "pneumatic"
+    }
+  ]
+}

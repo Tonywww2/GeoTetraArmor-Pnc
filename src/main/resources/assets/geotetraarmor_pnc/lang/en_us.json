@@ -1,0 +1,19 @@
+{
+  "tetra.variant.pneumatic": "Pneumatic Attachment",
+  "tetra.module.armor/head/extra/pneumatic.description": "A pneumatic helmet integrated into this armor, preserving its air, upgrades, and settings",
+  "tetra.module.armor/chest/extra/pneumatic.description": "A pneumatic chestplate integrated into this armor, preserving its air, upgrades, and settings",
+  "tetra.module.armor/legs/extra/pneumatic.description": "Pneumatic leggings integrated into this armor, preserving their air, upgrades, and settings",
+  "tetra.module.armor/feet/extra/pneumatic.description": "Pneumatic boots integrated into this armor, preserving their air, upgrades, and settings",
+  "tetra/schematic/armor/head/extra/pneumatic.name": "Pneumatic Helmet Attachment",
+  "tetra/schematic/armor/head/extra/pneumatic.slot1": "Pneumatic Helmet",
+  "tetra/schematic/armor/head/extra/pneumatic.description": "Integrate a Pneumatic Helmet into the extra slot",
+  "tetra/schematic/armor/chest/extra/pneumatic.name": "Pneumatic Chestplate Attachment",
+  "tetra/schematic/armor/chest/extra/pneumatic.slot1": "Pneumatic Chestplate",
+  "tetra/schematic/armor/chest/extra/pneumatic.description": "Integrate a Pneumatic Chestplate into the extra slot",
+  "tetra/schematic/armor/legs/extra/pneumatic.name": "Pneumatic Leggings Attachment",
+  "tetra/schematic/armor/legs/extra/pneumatic.slot1": "Pneumatic Leggings",
+  "tetra/schematic/armor/legs/extra/pneumatic.description": "Integrate Pneumatic Leggings into the extra slot",
+  "tetra/schematic/armor/feet/extra/pneumatic.name": "Pneumatic Boots Attachment",
+  "tetra/schematic/armor/feet/extra/pneumatic.slot1": "Pneumatic Boots",
+  "tetra/schematic/armor/feet/extra/pneumatic.description": "Integrate Pneumatic Boots into the extra slot"
+}

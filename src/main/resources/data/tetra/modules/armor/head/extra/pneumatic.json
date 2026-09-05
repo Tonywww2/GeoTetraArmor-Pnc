@@ -1,0 +1,10 @@
+{
+  "replace": true,
+  "type": "tetra:basic_module",
+  "slots": ["head/extra"],
+  "variants": [
+    {
+      "key": "pneumatic"
+    }
+  ]
+}

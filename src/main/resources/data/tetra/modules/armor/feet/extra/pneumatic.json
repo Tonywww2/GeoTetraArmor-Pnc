@@ -1,0 +1,10 @@
+{
+  "replace": true,
+  "type": "tetra:basic_module",
+  "slots": ["feet/extra"],
+  "variants": [
+    {
+      "key": "pneumatic"
+    }
+  ]
+}

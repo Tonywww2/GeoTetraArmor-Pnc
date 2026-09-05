@@ -1,0 +1,21 @@
+{
+  "replace": true,
+  "slots": ["head/extra"],
+  "materialSlotCount": 1,
+  "displayType": "major",
+  "glyph": {
+    "textureLocation": "pneumaticcraft:textures/item/pneumatic_helmet.png",
+    "textureX": 0,
+    "textureY": 0
+  },
+  "outcomes": [
+    {
+      "material": {
+        "items": ["pneumaticcraft:pneumatic_helmet"],
+        "count": 1
+      },
+      "moduleKey": "armor/head/extra/pneumatic",
+      "moduleVariant": "pneumatic"
+    }
+  ]
+}

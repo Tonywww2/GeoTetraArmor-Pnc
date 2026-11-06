@@ -8,6 +8,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
+import java.util.Objects;
 
 public final class PneumaticArmorState {
     private static final String DISPLAY_KEY = "display";
@@ -28,8 +29,29 @@ public final class PneumaticArmorState {
             PneumaticArmorItem.NBT_HOVER,
             PneumaticArmorItem.NBT_SMART_HOVER
     );
+    /** Everything in {@link #KEYS} except the stored air, which changes every tick. */
+    private static final List<String> CONFIG_KEYS = KEYS.stream()
+            .filter(key -> !key.equals(AirHandlerItemStack.AIR_NBT_KEY))
+            .toList();
 
     private PneumaticArmorState() {
+    }
+
+    /**
+     * Whether two stacks are the same item carrying the same PNC upgrades and settings.
+     * Air, durability and other volatile data are ignored, so a container re-syncing
+     * the piece the player is already wearing does not count as an armor swap.
+     */
+    public static boolean hasSameConfiguration(ItemStack a, ItemStack b) {
+        if (a.getItem() != b.getItem()) return false;
+        CompoundTag tagA = a.getTag();
+        CompoundTag tagB = b.getTag();
+        for (String key : CONFIG_KEYS) {
+            Tag valueA = tagA == null ? null : tagA.get(key);
+            Tag valueB = tagB == null ? null : tagB.get(key);
+            if (!Objects.equals(valueA, valueB)) return false;
+        }
+        return true;
     }
 
     public static void copy(ItemStack source, ItemStack target) {
@@ -84,4 +106,4 @@ public final class PneumaticArmorState {
             stack.removeTagKey(DISPLAY_KEY);
         }
     }
-}
+}

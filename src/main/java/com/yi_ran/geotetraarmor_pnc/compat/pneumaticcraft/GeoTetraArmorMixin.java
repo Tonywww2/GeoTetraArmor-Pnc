@@ -1,10 +1,10 @@
 package com.yi_ran.geotetraarmor_pnc.compat.pneumaticcraft;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.yi_ran.geotetraarmor_pnc.api.GeoTetraArmorItems;
 import com.yi_ran.geotetraarmor_pnc.api.IPneumaticArmorCompat;
-import me.desht.pneumaticcraft.api.PNCCapabilities;
+import com.yi_ran.geotetraarmor_pnc.pneumatic.PneumaticArmorCapabilityProvider;
 import me.desht.pneumaticcraft.api.client.IFOVModifierItem;
 import me.desht.pneumaticcraft.api.item.ICustomDurabilityBar;
 import me.desht.pneumaticcraft.api.pressure.IPressurizableItem;
@@ -16,7 +16,6 @@ import me.desht.pneumaticcraft.common.pneumatic_armor.handlers.ElytraHandler;
 import me.desht.pneumaticcraft.common.upgrades.ModUpgrades;
 import me.desht.pneumaticcraft.common.util.UpgradableItemUtils;
 import me.desht.pneumaticcraft.lib.PneumaticValues;
-import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,11 +24,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.EnderMan;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
-import net.minecraftforge.common.util.LazyOptional;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -44,6 +40,11 @@ import java.util.UUID;
  * Makes GeoTetraArmor's modular armor behave like PneumaticCraft pneumatic armor:
  * - implements IPneumaticArmorCompat so PNC's hard-coded checks accept it
  * - implements IPressurizableItem so AirHandlerItemStack can store compressed air
+ * <p>
+ * Methods added here override anything ModularArmorItem inherits from Tetra. Do not
+ * add a method whose signature already exists in Tetra's hierarchy (for example
+ * {@code isDamageable(ItemStack)}, see {@link ItemModularHandheldMixin}); inject into
+ * the Tetra class instead so ordinary GTA armor keeps Tetra's behaviour.
  */
 @Mixin(ModularArmorItem.class)
 public abstract class GeoTetraArmorMixin implements IPneumaticArmorCompat, IPressurizableItem,
@@ -88,27 +89,23 @@ public abstract class GeoTetraArmorMixin implements IPneumaticArmorCompat, IPres
     }
 
     public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
-        AirHandlerItemStack airHandler = new AirHandlerItemStack(stack);
-        return new ICapabilityProvider() {
-            @Override
-            public <T> LazyOptional<T> getCapability(Capability<T> cap, @Nullable Direction side) {
-                return cap == PNCCapabilities.AIR_HANDLER_ITEM_CAPABILITY
-                        && GeoTetraArmorItems.isPneumaticArmor(stack)
-                        ? airHandler.getCapability(cap, side)
-                        : LazyOptional.empty();
-            }
-        };
+        return new PneumaticArmorCapabilityProvider(stack);
     }
 
     @Inject(method = "getAttributeModifiers", remap = false, at = @At("RETURN"), cancellable = true)
     private void pnc$addArmorUpgradeModifiers(EquipmentSlot slot, ItemStack stack,
                                               CallbackInfoReturnable<Multimap<Attribute, AttributeModifier>> cir) {
-        if (!GeoTetraArmorItems.isPneumaticArmor(stack)
-                || slot != GeoTetraArmorItems.getEquipmentSlot(stack)) return;
+        ModularArmorItem self = (ModularArmorItem) (Object) this;
+        // GTA gives a broken (zero durability) piece no attributes at all; keep it that way.
+        if (slot != self.getEquipmentSlot()
+                || !GeoTetraArmorItems.isPneumaticArmor(stack)
+                || self.isBroken(stack)) return;
 
         int upgrades = UpgradableItemUtils.getUpgradeCount(stack, ModUpgrades.ARMOR.get());
+        if (upgrades <= 0) return;
+
         UUID modifierId = PNC_ARMOR_MODIFIER_IDS[slot.getIndex()];
-        Multimap<Attribute, AttributeModifier> modifiers = HashMultimap.create(cir.getReturnValue());
+        Multimap<Attribute, AttributeModifier> modifiers = ArrayListMultimap.create(cir.getReturnValue());
         modifiers.put(Attributes.ARMOR, new AttributeModifier(modifierId,
                 "Pneumatic Armor modifier boost", upgrades / 2.0,
                 AttributeModifier.Operation.ADDITION));
@@ -164,13 +161,6 @@ public abstract class GeoTetraArmorMixin implements IPneumaticArmorCompat, IPres
                 && wearer instanceof Player player
                 && CommonArmorHandler.getHandlerForPlayer(player)
                 .getUpgradeCount(EquipmentSlot.FEET, ModUpgrades.FLIPPERS.get()) > 0;
-    }
-
-    public boolean isDamageable(ItemStack stack) {
-        if (GeoTetraArmorItems.isPneumaticArmor(stack)) {
-            return UpgradableItemUtils.getUpgradeCount(stack, ModUpgrades.CREATIVE.get()) == 0;
-        }
-        return ((Item) (Object) this).canBeDepleted();
     }
 
     public boolean canElytraFly(ItemStack stack, LivingEntity entity) {

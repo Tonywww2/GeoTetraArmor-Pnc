@@ -31,7 +31,7 @@
 2. [GeoTetraArmorMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/GeoTetraArmorMixin.java)：气压 capability、PNC 接口、属性和特殊行为。
 3. [WorkbenchTileMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/WorkbenchTileMixin.java) 与 [PneumaticArmorState.java](src/main/java/com/yi_ran/geotetraarmor_pnc/pneumatic/PneumaticArmorState.java)：安装/拆除事务和状态迁移。
 4. [GeoTetraArmorPnc.java](src/main/java/com/yi_ran/geotetraarmor_pnc/GeoTetraArmorPnc.java)：升级数据库注册和附件限定 tooltip。
-5. [geotetraarmor_pnc.mixins.json](src/main/resources/geotetraarmor_pnc.mixins.json)：12 个通用 Mixin 和 7 个客户端 Mixin。
+5. [geotetraarmor_pnc.mixins.json](src/main/resources/geotetraarmor_pnc.mixins.json)：14 个通用 Mixin 和 10 个客户端 Mixin。
 
 ## 3. 运行链路
 
@@ -63,7 +63,7 @@ flowchart TD
 
 `PneumaticArmorState` 只处理 PNC 气量、升级库存、创造标记、搜索/坐标/过滤、跳跃/速度/喷气靴设置和三个 PNC 颜色键。`UpgradeCache` 在来源和目标上失效；耐久、附魔、名称和 Lore 不迁移。
 
-`GeoTetraArmorMixin` 实现 `IPressurizableItem`、`IFOVModifierItem` 和 `ICustomDurabilityBar`。气压处理器随 GTA 栈创建，但只有附件存在时才暴露 AIR capability。容量、FOV 和压力耐久条委托对应槽位的原版 PNC 护甲；护甲升级按 PNC 公式追加每级 `+0.5` 护甲和 `+1` 韧性，并接入镀金、末影面具、脚蹼、创造耐久和鞘翅飞行。
+`GeoTetraArmorMixin` 实现 `IPressurizableItem`、`IFOVModifierItem` 和 `ICustomDurabilityBar`。每个 GTA 栈都挂载 `PneumaticArmorCapabilityProvider`，但只有附件存在时才暴露 AIR capability，且气压处理器按需惰性创建。容量、FOV 和压力耐久条委托对应槽位的原版 PNC 护甲；护甲升级按 PNC 公式追加每级 `+0.5` 护甲和 `+1` 韧性，并接入镀金、末影面具、脚蹼和鞘翅飞行；损坏（broken）状态下不追加护甲升级属性。创造升级的“不可损耗”由 `ItemModularHandheldMixin` 注入 Tetra 的 `isDamageable`，不得在 `GeoTetraArmorMixin` 中声明同签名方法覆盖 Tetra 实现。
 
 ## 4. 源码索引
 
@@ -74,7 +74,8 @@ flowchart TD
 | [GeoTetraArmorPnc.java](src/main/java/com/yi_ran/geotetraarmor_pnc/GeoTetraArmorPnc.java) | Forge 入口、升级白名单、附件限定 tooltip。 |
 | [GeoTetraArmorItems.java](src/main/java/com/yi_ran/geotetraarmor_pnc/api/GeoTetraArmorItems.java) | GTA/附件/槽位/PNC 护甲映射和统一门禁。 |
 | [IPneumaticArmorCompat.java](src/main/java/com/yi_ran/geotetraarmor_pnc/api/IPneumaticArmorCompat.java) | 注入 GTA 物品的语义标记；实际门禁不依赖该接口。 |
-| [PneumaticArmorState.java](src/main/java/com/yi_ran/geotetraarmor_pnc/pneumatic/PneumaticArmorState.java) | 选择性复制或迁移 PNC 状态并失效升级缓存。 |
+| [PneumaticArmorState.java](src/main/java/com/yi_ran/geotetraarmor_pnc/pneumatic/PneumaticArmorState.java) | 选择性复制或迁移 PNC 状态并失效升级缓存；比较两件护甲的 PNC 配置（忽略气量）。 |
+| [PneumaticArmorCapabilityProvider.java](src/main/java/com/yi_ran/geotetraarmor_pnc/pneumatic/PneumaticArmorCapabilityProvider.java) | 附件限定、惰性创建的 AIR capability。 |
 
 ### 4.2 通用端 Mixin
 
@@ -83,15 +84,17 @@ flowchart TD
 | [BaseSchematicMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/BaseSchematicMixin.java) | 拒绝重复安装。 |
 | [WorkbenchTileMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/WorkbenchTileMixin.java) | 安装和拆除状态事务。 |
 | [GeoTetraArmorMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/GeoTetraArmorMixin.java) | PNC 接口、capability、属性和特殊行为。 |
-| [PneumaticArmorItemMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorItemMixin.java) | PNC 静态护甲判断和配置读写门禁。 |
+| [ItemModularHandheldMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/ItemModularHandheldMixin.java) | 在 Tetra `isDamageable` 上叠加 PNC 创造升级，其余保持 Tetra 耐久逻辑。 |
+| [NightVisionHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/NightVisionHandlerMixin.java) | 头盔未装夜视升级时，关闭夜视开关不再清除玩家的夜视效果。 |
+| [PneumaticArmorItemMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorItemMixin.java) | PNC 静态护甲判断、配置读写和无人机调试门禁。 |
 | [CommonArmorHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/CommonArmorHandlerMixin.java) | 放行附件护甲的每槽位升级处理。 |
-| [PneumaticArmorHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorHandlerMixin.java) | 放行附件护腿的跳跃增强。 |
+| [PneumaticArmorHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorHandlerMixin.java) | 放行附件护腿的跳跃增强和附件喷气靴的追踪同步。 |
 | [ScubaHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/ScubaHandlerMixin.java) | 兼容头盔基础容量的硬转换。 |
 | [JetBootsHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/JetBootsHandlerMixin.java) | 把冷却写到实际 GTA 靴子物品。 |
-| [LivingEntityArmorMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/LivingEntityArmorMixin.java) | 装备变化时刷新 PNC 槽位处理器。 |
+| [LivingEntityArmorMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/LivingEntityArmorMixin.java) | 气动件之间直接替换且 PNC 配置不同时重置槽位处理器；同一件护甲的槽位同步（Curios、机器界面）不重置。 |
 | [PacketUpdateArmorExtraDataMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PacketUpdateArmorExtraDataMixin.java) | 放行附件护甲的设置数据包。 |
 | [PacketUpdateSearchItemMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PacketUpdateSearchItemMixin.java) | 放行附件头盔的搜索目标数据包。 |
-| [ChargingStationBlockEntityMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/ChargingStationBlockEntityMixin.java) | 服务端充能库存和升级管理入口。 |
+| [ChargingStationBlockEntityMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/ChargingStationBlockEntityMixin.java) | 服务端充能库存和升级管理入口（`CHARGING_ARMOR` 护甲专用界面）。 |
 
 ### 4.3 客户端 Mixin
 
@@ -103,7 +106,10 @@ flowchart TD
 | [HUDHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/HUDHandlerMixin.java) | 附件头盔 HUD 的眼部颜色。 |
 | [PneumaticArmorHUDOverlayMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorHUDOverlayMixin.java) | 压力条与初始化进度渲染。 |
 | [PneumaticElytraLayerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticElytraLayerMixin.java) | 附件胸甲的 PNC 鞘翅层。 |
-| [PneumaticArmorUpgradeScreenMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorUpgradeScreenMixin.java) | 专用升级界面的类型与容量兼容。 |
+| [PneumaticArmorUpgradeScreenMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/PneumaticArmorUpgradeScreenMixin.java) | 专用升级界面的类型与容量兼容（以对应 PNC 护甲提供说明文本和槽位）。 |
+| [ItemSearcherScreenMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/ItemSearcherScreenMixin.java) | 物品搜索器界面不再因附件头盔自动关闭。 |
+| [CoordTrackClientHandlerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/CoordTrackClientHandlerMixin.java) | 附件头盔可右键选取坐标追踪目标。 |
+| [AreaRenderManagerMixin.java](src/main/java/com/yi_ran/geotetraarmor_pnc/compat/pneumaticcraft/AreaRenderManagerMixin.java) | 附件头盔的无人机调试区域渲染。 |
 
 ## 5. 资源索引
 
@@ -138,3 +144,7 @@ flowchart TD
 5. 更新依赖后需以准确字节码核对每个 `@Redirect` 的方法边界和调用数量。
 6. 界面/HUD Mixin 留在 `client` 数组；通用逻辑留在 `mixins` 数组。
 7. 不增加旧 GTA 栈的历史 PNC NBT 扫描、迁移或清理。
+8. 不在 `GeoTetraArmorMixin` 中声明 Tetra 继承链已有的方法（如 `isDamageable`）；需要改变行为时注入 Tetra 原方法，保证未装附件的护甲保持 Tetra 原行为。
+9. 挂在 `onEquipItem` 等会被槽位同步反复调用的入口上的逻辑，必须区分“同一件护甲重新同步”和“真正换装”。
+10. Tetra 工作台会在客户端预测执行 `craft`，发放物品等副作用只能在服务端执行。
+11. 不在运行期创建 `Item` 实例；需要“伪装类型”时返回对应的已注册 PNC 物品。

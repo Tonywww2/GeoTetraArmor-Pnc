@@ -1,16 +1,14 @@
 package com.yi_ran.geotetraarmor_pnc.api;
 
 import me.desht.pneumaticcraft.common.core.ModItems;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.ForgeRegistries;
 import ovo.yiran.geotetraarmor.items.ModularArmorItem;
-import se.mickelus.tetra.items.modular.IModularItem;
 import se.mickelus.tetra.module.ItemModule;
 
-import java.util.Set;
+import javax.annotation.Nullable;
 
 /**
  * Runtime detection for GeoTetraArmor armor items.
@@ -18,48 +16,59 @@ import java.util.Set;
  * This deliberately does not depend on the mixin-added marker interface, so the
  * Charging Station UI/tooltip/armor detection still works even if the interface
  * mixin is not applied for some reason.
+ *
+ * These checks run on hot paths (every armor tick, HUD frame, capability query and
+ * tooltip), so slot/module keys are precomputed and ordinary armor is rejected with
+ * an NBT string comparison before the Tetra module registry is consulted.
  */
 public final class GeoTetraArmorItems {
-    private static final Set<String> ARMOR_PATHS = Set.of("head", "chest", "legs", "feet");
+    /** Indexed by {@link EquipmentSlot#getIndex()} for the four armor slots. */
+    private static final String[] EXTRA_SLOTS = new String[4];
+    private static final String[] PNEUMATIC_MODULES = new String[4];
+
+    static {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.getType() == EquipmentSlot.Type.ARMOR) {
+                String extraSlot = slot.getName() + "/extra";
+                EXTRA_SLOTS[slot.getIndex()] = extraSlot;
+                PNEUMATIC_MODULES[slot.getIndex()] = "armor/" + extraSlot + "/pneumatic";
+            }
+        }
+    }
 
     private GeoTetraArmorItems() {
     }
 
     public static boolean isGeoTetraArmor(ItemStack stack) {
-        return !stack.isEmpty() && isGeoTetraArmor(stack.getItem());
+        return !stack.isEmpty() && stack.getItem() instanceof ModularArmorItem;
     }
 
     public static boolean isGeoTetraArmor(Item item) {
-        if (item == null) return false;
-        if (item instanceof ModularArmorItem) return true;
-        ResourceLocation key = ForgeRegistries.ITEMS.getKey(item);
-        return key != null
-                && key.getNamespace().equals("geotetraarmor")
-                && ARMOR_PATHS.contains(key.getPath());
+        // All four GeoTetraArmor armor items are ModularArmorItem subclasses.
+        return item instanceof ModularArmorItem;
     }
 
     public static boolean isPneumaticArmor(ItemStack stack) {
-        if (!isGeoTetraArmor(stack)) return false;
-        EquipmentSlot slot = getEquipmentSlot(stack);
-        if (slot == null || !(stack.getItem() instanceof IModularItem modularItem)) return false;
-        ItemModule module = modularItem.getModuleFromSlot(stack, extraSlot(slot));
-        return module != null && pneumaticModule(slot).equals(module.getKey());
+        if (stack.isEmpty() || !(stack.getItem() instanceof ModularArmorItem armor)) return false;
+        CompoundTag tag = stack.getTag();
+        if (tag == null) return false;
+        EquipmentSlot slot = armor.getEquipmentSlot();
+        if (slot.getType() != EquipmentSlot.Type.ARMOR) return false;
+
+        int index = slot.getIndex();
+        String moduleKey = PNEUMATIC_MODULES[index];
+        // Tetra stores the module key of a slot directly under the slot name.
+        if (!moduleKey.equals(tag.getString(EXTRA_SLOTS[index]))) return false;
+
+        ItemModule module = armor.getModuleFromSlot(stack, EXTRA_SLOTS[index]);
+        return module != null && moduleKey.equals(module.getKey());
     }
 
+    @Nullable
     public static EquipmentSlot getEquipmentSlot(ItemStack stack) {
-        if (stack.isEmpty()) return null;
-        if (stack.getItem() instanceof ModularArmorItem armor) {
-            return armor.getEquipmentSlot();
-        }
-        ResourceLocation key = ForgeRegistries.ITEMS.getKey(stack.getItem());
-        if (key == null || !key.getNamespace().equals("geotetraarmor")) return null;
-        return switch (key.getPath()) {
-            case "head" -> EquipmentSlot.HEAD;
-            case "chest" -> EquipmentSlot.CHEST;
-            case "legs" -> EquipmentSlot.LEGS;
-            case "feet" -> EquipmentSlot.FEET;
-            default -> null;
-        };
+        return !stack.isEmpty() && stack.getItem() instanceof ModularArmorItem armor
+                ? armor.getEquipmentSlot()
+                : null;
     }
 
     public static Item pneumaticArmorItem(EquipmentSlot slot) {
@@ -72,11 +81,29 @@ public final class GeoTetraArmorItems {
         };
     }
 
+    /**
+     * The item PNC should "see" for a stack: the matching PNC armor piece for an
+     * attachment-equipped GeoTetraArmor stack, the stack's real item otherwise.
+     * Intended for {@code @Redirect}s of {@link ItemStack#getItem()} in PNC type checks;
+     * state must still be read from and written to the original stack.
+     */
+    public static Item pneumaticItemView(ItemStack stack) {
+        Item item = stack.getItem();
+        if (item instanceof ModularArmorItem armor && isPneumaticArmor(stack)) {
+            return pneumaticArmorItem(armor.getEquipmentSlot());
+        }
+        return item;
+    }
+
     public static String extraSlot(EquipmentSlot slot) {
-        return slot.getName() + "/extra";
+        return slot.getType() == EquipmentSlot.Type.ARMOR
+                ? EXTRA_SLOTS[slot.getIndex()]
+                : slot.getName() + "/extra";
     }
 
     public static String pneumaticModule(EquipmentSlot slot) {
-        return "armor/" + extraSlot(slot) + "/pneumatic";
+        return slot.getType() == EquipmentSlot.Type.ARMOR
+                ? PNEUMATIC_MODULES[slot.getIndex()]
+                : "armor/" + extraSlot(slot) + "/pneumatic";
     }
 }

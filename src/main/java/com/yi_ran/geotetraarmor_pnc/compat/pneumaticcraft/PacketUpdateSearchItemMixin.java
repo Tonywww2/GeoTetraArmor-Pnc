@@ -11,11 +11,9 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(PacketUpdateSearchItem.class)
 public abstract class PacketUpdateSearchItemMixin {
 
-        @Redirect(method = "lambda$handle$0", remap = false, at = @At(value = "INVOKE", remap = true,
+    @Redirect(method = "lambda$handle$0", remap = false, at = @At(value = "INVOKE", remap = true,
             target = "Lnet/minecraft/world/item/ItemStack;getItem()Lnet/minecraft/world/item/Item;"))
     private Item pnc$acceptAttachmentHelmet(ItemStack stack) {
-        return GeoTetraArmorItems.isPneumaticArmor(stack)
-                ? GeoTetraArmorItems.pneumaticArmorItem(GeoTetraArmorItems.getEquipmentSlot(stack))
-                : stack.getItem();
+        return GeoTetraArmorItems.pneumaticItemView(stack);
     }
-}
+}

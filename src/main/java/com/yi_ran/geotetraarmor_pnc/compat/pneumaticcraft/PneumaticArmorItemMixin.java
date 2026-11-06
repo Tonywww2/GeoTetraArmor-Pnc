@@ -13,11 +13,26 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(PneumaticArmorItem.class)
 public abstract class PneumaticArmorItemMixin {
+
+    /**
+     * The drone debugger checks {@code helmet.getItem() == PNEUMATIC_HELMET} (one call per
+     * method), so a drone being debugged through an attachment helmet was never recognised.
+     */
+    @Redirect(method = {
+            "isPlayerDebuggingDrone(Lnet/minecraft/world/entity/player/Player;Lme/desht/pneumaticcraft/common/entity/drone/AbstractDroneEntity;)Z",
+            "isPlayerDebuggingDrone(Lnet/minecraft/world/entity/player/Player;Lme/desht/pneumaticcraft/common/drone/IDroneBase;)Z",
+            "getDebuggedDrone()Lme/desht/pneumaticcraft/common/drone/IDroneBase;"
+    }, remap = false, at = @At(value = "INVOKE", remap = true,
+            target = "Lnet/minecraft/world/item/ItemStack;getItem()Lnet/minecraft/world/item/Item;"))
+    private static Item pnc$acceptAttachmentHelmetForDroneDebug(ItemStack stack) {
+        return GeoTetraArmorItems.pneumaticItemView(stack);
+    }
 
     @Inject(method = "isPneumaticArmorPiece", remap = false, at = @At("HEAD"), cancellable = true)
     private static void pnc$isPneumaticArmorPiece(Player player, EquipmentSlot slot, CallbackInfoReturnable<Boolean> cir) {

@@ -9,8 +9,10 @@
     "ChargingStationBlockEntityMixin",
     "CommonArmorHandlerMixin",
     "GeoTetraArmorMixin",
+    "ItemModularHandheldMixin",
     "JetBootsHandlerMixin",
     "LivingEntityArmorMixin",
+    "NightVisionHandlerMixin",
     "PacketUpdateArmorExtraDataMixin",
     "PacketUpdateSearchItemMixin",
     "PneumaticArmorHandlerMixin",
@@ -20,9 +22,12 @@
   ],
   "client": [
     "AbstractUpgradeManagerScreenAccessor",
+    "AreaRenderManagerMixin",
     "ChargingStationScreenMixin",
+    "CoordTrackClientHandlerMixin",
     "CoreComponentsClientHandlerMixin",
     "HUDHandlerMixin",
+    "ItemSearcherScreenMixin",
     "PneumaticArmorHUDOverlayMixin",
     "PneumaticElytraLayerMixin",
     "PneumaticArmorUpgradeScreenMixin"

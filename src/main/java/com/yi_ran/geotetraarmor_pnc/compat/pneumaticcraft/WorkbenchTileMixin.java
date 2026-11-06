@@ -18,14 +18,23 @@ import java.util.Arrays;
 @Mixin(WorkbenchTile.class)
 public abstract class WorkbenchTileMixin {
     @Unique
+    private static final ItemStack[] PNC_NO_MATERIALS = new ItemStack[0];
+
+    @Unique
     private ItemStack pnc$targetBeforeCraft = ItemStack.EMPTY;
     @Unique
-    private ItemStack[] pnc$materialsBeforeCraft = new ItemStack[0];
+    private ItemStack[] pnc$materialsBeforeCraft = PNC_NO_MATERIALS;
 
     @Inject(method = "craft", remap = false, at = @At("HEAD"))
     private void pnc$captureArmorState(Player player, CallbackInfo ci) {
         WorkbenchTile workbench = (WorkbenchTile) (Object) this;
-        pnc$targetBeforeCraft = workbench.getTargetItemStack().copy();
+        ItemStack target = workbench.getTargetItemStack();
+        if (!GeoTetraArmorItems.isGeoTetraArmor(target)) {
+            pnc$targetBeforeCraft = ItemStack.EMPTY;
+            pnc$materialsBeforeCraft = PNC_NO_MATERIALS;
+            return;
+        }
+        pnc$targetBeforeCraft = target.copy();
         pnc$materialsBeforeCraft = Arrays.stream(workbench.getMaterials())
                 .map(ItemStack::copy)
                 .toArray(ItemStack[]::new);
@@ -49,12 +58,17 @@ public abstract class WorkbenchTileMixin {
             EquipmentSlot slot = GeoTetraArmorItems.getEquipmentSlot(pnc$targetBeforeCraft);
             ItemStack returnedArmor = new ItemStack(GeoTetraArmorItems.pneumaticArmorItem(slot));
             PneumaticArmorState.move(target, returnedArmor);
-            if (!player.addItem(returnedArmor)) {
-                player.drop(returnedArmor, false);
+            // Tetra also runs craft() on the client as a prediction (initiateCrafting).
+            // Only the server may hand out the returned armor, otherwise the client gets
+            // a ghost item (or tosses one) until the next inventory sync.
+            if (!player.level().isClientSide) {
+                if (!player.addItem(returnedArmor)) {
+                    player.drop(returnedArmor, false);
+                }
             }
         }
 
         pnc$targetBeforeCraft = ItemStack.EMPTY;
-        pnc$materialsBeforeCraft = new ItemStack[0];
+        pnc$materialsBeforeCraft = PNC_NO_MATERIALS;
     }
 }

@@ -1,7 +1,6 @@
 package com.yi_ran.geotetraarmor_pnc.compat.pneumaticcraft;
 
 import com.yi_ran.geotetraarmor_pnc.api.GeoTetraArmorItems;
-import me.desht.pneumaticcraft.common.core.ModItems;
 import me.desht.pneumaticcraft.common.item.PneumaticArmorItem;
 import me.desht.pneumaticcraft.common.pneumatic_armor.CommonArmorHandler;
 import net.minecraft.world.item.Item;
@@ -22,7 +21,6 @@ public abstract class CommonArmorHandlerMixin {
 
     @Redirect(method = "tickArmorPiece", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getItem()Lnet/minecraft/world/item/Item;"))
     private Item pnc$redirectGetItem(ItemStack stack) {
-        Item item = stack.getItem();
-        return GeoTetraArmorItems.isPneumaticArmor(stack) ? GeoTetraArmorItems.pneumaticArmorItem(GeoTetraArmorItems.getEquipmentSlot(stack)) : item;
+        return GeoTetraArmorItems.pneumaticItemView(stack);
     }
 }
